@@ -170,5 +170,55 @@ class TestStringExtractor(unittest.TestCase):
         assert(output[2][0] == "FULL")
         assert(sorted(list(map( lambda x : x[1], output ))) == ["bar", "bat", "foo"])
 
+    def test_batch_base(self):
+        lines = [ ( "stringprocessor-testdata.py", 26), ( "stringprocessor-testdata.py", 28) ]
+        output = self.extractor.get_batch(lines)
+        assert(len(output) == 2)
+        assert(output[0][0] == "stringprocessor-testdata.py")
+        assert(output[0][1] == 26)
+        assert(output[0][2] == [ ( "FULL", "bar" ) ])
+        assert(output[1][0] == "stringprocessor-testdata.py")
+        assert(output[1][1] == 28)
+        assert(output[1][2] == [ ( "FULL", "baz" ) ])
+
+    def test_batch_collapsed(self):
+        lines = [ ( "stringprocessor-testdata.py", 26), ( "stringprocessor-testdata.py", 28) ]
+        output = self.extractor.get_batch(lines, True)
+        assert(len(output) == 2)
+        assert(output[0] == ( "FULL", "bar" ) )
+        assert(output[1] == ( "FULL", "baz" ) )
+
+    def test_batch_from_cache(self):
+        lines = [ ( "stringprocessor-testdata.py", 26), ( "stringprocessor-testdata.py", 28) ]
+        extractor = StringExtractor()
+        extractor.cache = { ("stringprocessor-testdata.py", 26) : [ ("FULL", "cachedBar" ) ],
+                            ("stringprocessor-testdata.py", 28) : [ ("FULL", "cachedBaz" ) ] }
+        output = extractor.get_batch(lines)
+        assert(len(output) == 2)
+        assert(output[0][0] == "stringprocessor-testdata.py")
+        assert(output[0][1] == 26)
+        assert(output[0][2] == [ ( "FULL", "cachedBar" ) ])
+        assert(output[1][0] == "stringprocessor-testdata.py")
+        assert(output[1][1] == 28)
+        assert(output[1][2] == [ ( "FULL", "cachedBaz" ) ])
+
+    def test_batch_to_from_cache(self):
+        # First save the results to persistent cache
+        extractor = StringExtractor(True, "cache.test.tmp")
+        extractor.cache = { ("stringprocessor-testdata.py", 26) : [ ("FULL", "retrievedBar" ) ],
+                            ("stringprocessor-testdata.py", 28) : [ ("FULL", "retrievedBaz" ) ] }
+        extractor.save()
+        # Then retrieve them from cache in a new extractor
+        lines = [ ( "stringprocessor-testdata.py", 26), ( "stringprocessor-testdata.py", 28) ]
+        new_extractor = StringExtractor(True, "cache.test.tmp")
+        output = new_extractor.get_batch(lines)
+        assert(len(output) == 2)
+        assert(output[0][0] == "stringprocessor-testdata.py")
+        assert(output[0][1] == 26)
+        assert(output[0][2] == [ ( "FULL", "retrievedBar" ) ])
+        assert(output[1][0] == "stringprocessor-testdata.py")
+        assert(output[1][1] == 28)
+        assert(output[1][2] == [ ( "FULL", "retrievedBaz" ) ])
+
 if __name__ == '__main__':
     unittest.main()
