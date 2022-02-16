@@ -33,7 +33,12 @@ class InterestingStringCollector(ast.NodeVisitor):
             if leftClass == "<class '_ast.Str'>":
                 self.fragments.add(node.left.s)
             elif comparatorsClass == "<class 'list'>":
-                for element in node.comparators[0].elts:
+                try:
+                    elements = node.comparators[0].elts
+                except AttributeError:
+                    # Not a regular list
+                    return
+                for element in elements:
                     elementClass = str(type(element))
                     if elementClass == "<class '_ast.Str'>":
                         self.fullStrings.add(element.s)
