@@ -40,11 +40,20 @@ class InterestingStringCollector(ast.NodeVisitor):
 
 
     def visit_Call(self,node):
-        if node.func.attr == "startswith" and str(type(node.args[0])) == "<class '_ast.Str'>":
-            self.prefixes.add(node.args[0].s)
-        elif node.func.attr == "endswith" and str(type(node.args[0])) == "<class '_ast.Str'>":
-            self.suffixes.add(node.args[0].s)
-        elif node.func.attr == "index" and str(type(node.args[0])) == "<class '_ast.Str'>":
-            self.fragments.add(node.args[0].s)
-        elif node.func.attr == "find" and str(type(node.args[0])) == "<class '_ast.Str'>":
-            self.fragments.add(node.args[0].s)
+        try:
+            attr = node.func.attr
+            arg0 = node.args[0]
+            string = node.args[0].s
+        except AttributeError:
+            # Call without attribute, without arguments, or first argument
+            # is not a regular string
+            return
+
+        if attr == "startswith" and str(type(arg0)) == "<class '_ast.Str'>":
+            self.prefixes.add(string)
+        elif attr == "endswith" and str(type(arg0)) == "<class '_ast.Str'>":
+            self.suffixes.add(string)
+        elif attr == "index"    and str(type(arg0)) == "<class '_ast.Str'>":
+            self.fragments.add(string)
+        elif attr == "find"     and str(type(arg0)) == "<class '_ast.Str'>":
+            self.fragments.add(string)
