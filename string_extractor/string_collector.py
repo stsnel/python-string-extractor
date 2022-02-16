@@ -18,31 +18,45 @@ class InterestingStringCollector(ast.NodeVisitor):
                  [ ( "FULL", s ) for s in self.fullStrings ] )
 
 
+    def _isStringClass(self, c):
+        className = str(type(c))
+        if className in ["<class '_ast.Str'>", "<class 'str'>"]:
+            return True
+        elif ( className == "<class '_ast.Constant'>" and
+               str(type(c.value)) == "<class 'str'>" ):
+            return True
+        else:
+            return False
+
+    def _getStringValue(self, c):
+        if str(type(c)) in ["<class '_ast.Str'>", "<class 'str'>"]:
+            return c.s
+        else:
+            return c.value
+
     def visit_Compare(self, node):
         opstype = str(type(node.ops[0]))
         if opstype in ["<class '_ast.Eq'>","<class '_ast.NotEq'>"]:
-            leftClass = str(type(node.left))
-            rightClass = str(type(node.comparators[0]))
-            if leftClass == "<class '_ast.Str'>" and rightClass != "<class '_ast.Str'>":
-                self.fullStrings.add(node.left.s)
-            elif leftClass != "<class '_ast.Str'>" and rightClass == "<class '_ast.Str'>":
-                self.fullStrings.add(node.comparators[0].s)
+            left = node.left
+            right = node.comparators[0]
+            if self._isStringClass(left) and not self._isStringClass(right):
+                self.fullStrings.add(self._getStringValue(left))
+            elif (not self._isStringClass(left)) and self._isStringClass(right):
+                self.fullStrings.add(self._getStringValue(right))
         elif opstype == "<class '_ast.In'>":
-            leftClass = str(type(node.left))
-            comparatorsClass = str(type(node.comparators))
-            if leftClass == "<class '_ast.Str'>":
-                self.fragments.add(node.left.s)
-            elif comparatorsClass == "<class 'list'>":
+            left = node.left
+            comparators = node.comparators
+            if self._isStringClass(left):
+                self.fragments.add(self._getStringValue(left))
+            elif str(type(comparators)) == "<class 'list'>":
                 try:
                     elements = node.comparators[0].elts
                 except AttributeError:
                     # Not a regular list
                     return
                 for element in elements:
-                    elementClass = str(type(element))
-                    if elementClass == "<class '_ast.Str'>":
-                        self.fullStrings.add(element.s)
-
+                    if self._isStringClass(element):
+                        self.fullStrings.add(self._getStringValue(element))
 
     def visit_Call(self,node):
         try:
@@ -57,11 +71,11 @@ class InterestingStringCollector(ast.NodeVisitor):
             # Call without arguments
             return
 
-        if attr == "startswith" and str(type(arg0)) == "<class '_ast.Str'>":
-            self.prefixes.add(string)
-        elif attr == "endswith" and str(type(arg0)) == "<class '_ast.Str'>":
-            self.suffixes.add(string)
-        elif attr == "index"    and str(type(arg0)) == "<class '_ast.Str'>":
-            self.fragments.add(string)
-        elif attr == "find"     and str(type(arg0)) == "<class '_ast.Str'>":
-            self.fragments.add(string)
+        if attr == "startswith" and self._isStringClass(arg0):
+            self.prefixes.add(self._getStringValue(arg0))
+        elif attr == "endswith" and self._isStringClass(arg0):
+            self.suffixes.add(self._getStringValue(arg0))
+        elif attr == "index"    and self._isStringClass(arg0):
+            self.fragments.add(self._getStringValue(arg0))
+        elif attr == "find"     and self._isStringClass(arg0):
+            self.fragments.add(self._getStringValue(arg0))
