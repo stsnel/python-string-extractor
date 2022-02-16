@@ -108,6 +108,10 @@ class StringExtractor:
         if filename.endswith(".j2") or filename.endswith(".html"):
             return ("IGNORE","")
 
+        # Ignore annotations
+        if line.startswith("@"):
+            return ("IGNORE", "")
+
         # Ignore irrelevant control flow statements
         for keyword in ["try", "except", "finally", "else" ]:
             if re.match( "^{}\s*[\s:]$".format(keyword), line):
