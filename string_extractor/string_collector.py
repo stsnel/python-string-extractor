@@ -50,8 +50,11 @@ class InterestingStringCollector(ast.NodeVisitor):
             arg0 = node.args[0]
             string = node.args[0].s
         except AttributeError:
-            # Call without attribute, without arguments, or first argument
+            # Call without attribute or first argument
             # is not a regular string
+            return
+        except IndexError:
+            # Call without arguments
             return
 
         if attr == "startswith" and str(type(arg0)) == "<class '_ast.Str'>":
