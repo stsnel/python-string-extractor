@@ -105,7 +105,7 @@ class StringExtractor:
         numberOfLines = self._getNumberOfLines(filename)
         line = linecache.getline(filename, lineNumber).strip()
 
-        if filename.endswith(".j2"):
+        if filename.endswith(".j2") or filename.endswith(".html"):
             return ("IGNORE","")
 
         # Ignore irrelevant control flow statements
