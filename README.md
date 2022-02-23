@@ -18,6 +18,10 @@ elif var == "bar":
    doSomethingElse()
 ```
 
+## System requirements
+
+Python-string-extractor currently works with Python 3.6 through 3.8.
+
 ## Usage
 
 The string extractor needs to be provided with an execution trace of Python
