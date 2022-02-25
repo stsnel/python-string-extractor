@@ -20,7 +20,7 @@ elif var == "bar":
 
 ## System requirements
 
-Python-string-extractor currently works with Python 3.6 through 3.8.
+Python-string-extractor currently works with Python 3.6 through 3.10.
 
 ## Usage
 
