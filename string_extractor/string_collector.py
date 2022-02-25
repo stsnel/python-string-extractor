@@ -22,7 +22,7 @@ class InterestingStringCollector(ast.NodeVisitor):
         className = str(type(c))
         if className in ["<class '_ast.Str'>", "<class 'str'>"]:
             return True
-        elif ( className == "<class '_ast.Constant'>" and
+        elif ( className in [ "<class '_ast.Constant'>", "<class 'ast.Constant'>" ] and
                str(type(c.value)) == "<class 'str'>" ):
             return True
         else:
@@ -36,14 +36,15 @@ class InterestingStringCollector(ast.NodeVisitor):
 
     def visit_Compare(self, node):
         opstype = str(type(node.ops[0]))
-        if opstype in ["<class '_ast.Eq'>","<class '_ast.NotEq'>"]:
+        if opstype in ["<class '_ast.Eq'>","<class '_ast.NotEq'>",
+                       "<class 'ast.Eq'>"  ,"<class 'ast.NotEq'>" ]:
             left = node.left
             right = node.comparators[0]
             if self._isStringClass(left) and not self._isStringClass(right):
                 self.fullStrings.add(self._getStringValue(left))
             elif (not self._isStringClass(left)) and self._isStringClass(right):
                 self.fullStrings.add(self._getStringValue(right))
-        elif opstype == "<class '_ast.In'>":
+        elif opstype in ["<class '_ast.In'>", "<class 'ast.In'>"]:
             left = node.left
             comparators = node.comparators
             if self._isStringClass(left):
