@@ -28,11 +28,38 @@ class InterestingStringCollector(ast.NodeVisitor):
         else:
             return False
 
+    def _isTupleClass(self, c):
+        className = str(type(c))
+        return className in  ["<class '_ast.Tuple'>", "<class 'ast.Tuple'>"]
+
     def _getStringValue(self, c):
+        """Parses a single string value in the AST tree"""
         if str(type(c)) in ["<class '_ast.Str'>", "<class 'str'>"]:
             return c.s
         else:
             return c.value
+
+    def _getStringValuesAsList(self, c):
+        """Parses a single string value or tuple of strings in an AST
+           tree as a list of strings."""
+        def _get_single(c):
+            classname = str(type(c))
+            if classname in ["<class '_ast.Str'>", "<class 'str'>"]:
+                return [c.s]
+            elif classname in [ "<class '_ast.Constant'>", "<class 'ast.Constant'>" ]:
+                return [c.value]
+            else:
+                return []
+
+        classname = str(type(c))
+        if classname in ["<class '_ast.Str'>", "<class 'str'>",
+                         "<class '_ast.Constant'>", "<class 'ast.Constant'>"  ]:
+            return _get_single(c)
+        elif classname in ["<class '_ast.Tuple'>", "<class 'ast.Tuple'>"]:
+            result = []
+            for element in c.elts:
+                result.extend(_get_single(element))
+            return result
 
     def visit_Compare(self, node):
         opstype = str(type(node.ops[0]))
@@ -59,11 +86,11 @@ class InterestingStringCollector(ast.NodeVisitor):
                     if self._isStringClass(element):
                         self.fullStrings.add(self._getStringValue(element))
 
-    def visit_Call(self,node):
+    def visit_Call(self, node):
         try:
             attr = node.func.attr
+            args = node.args
             arg0 = node.args[0]
-            string = node.args[0].s
         except AttributeError:
             # Call without attribute or first argument
             # is not a regular string
@@ -72,10 +99,18 @@ class InterestingStringCollector(ast.NodeVisitor):
             # Call without arguments
             return
 
-        if attr == "startswith" and self._isStringClass(arg0):
-            self.prefixes.add(self._getStringValue(arg0))
-        elif attr == "endswith" and self._isStringClass(arg0):
-            self.suffixes.add(self._getStringValue(arg0))
+        if attr == "startswith":
+            for arg in node.args:
+                if self._isStringClass(arg):
+                    self.prefixes.add(self._getStringValue(arg))
+                elif self._isTupleClass(arg):
+                    self.prefixes.update(self._getStringValuesAsList(arg))
+        elif attr == "endswith":
+            for arg in node.args:
+                if self._isStringClass(arg):
+                    self.suffixes.add(self._getStringValue(arg))
+                elif self._isTupleClass(arg):
+                    self.suffixes.update(self._getStringValuesAsList(arg))
         elif attr == "index"    and self._isStringClass(arg0):
             self.fragments.add(self._getStringValue(arg0))
         elif attr == "find"     and self._isStringClass(arg0):

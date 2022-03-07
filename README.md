@@ -40,7 +40,7 @@ in code, as well as overlapping execution traces.
 |Comparison | != (does not equal operator) | Full string | a != "foo" |
 |Comparison | in (part of operator) | String fragment | "foo" in a |
 |Comparison | in (match with collection) | List of full strings | a in ["foo","bar"] |
-|Call | string.startswith | String prefix | a.startswith("foo") |
-|Call | string.endswith | String suffix | a.endswith("foo") |
+|Call | string.startswith | String prefix, or tuple of string prefixes  | a.startswith("foo") |
+|Call | string.endswith | String suffix, or tuple of string suffixes  | a.endswith("foo") |
 |Call | string.find | String fragment | a.find("foo") |
 |Call | string.index | String fragment | a.index("foo") |

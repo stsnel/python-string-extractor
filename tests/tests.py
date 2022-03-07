@@ -118,17 +118,31 @@ class TestStringExtractor(unittest.TestCase):
         assert(output[0][0] == "FRAGMENT")
         assert(output[0][1] == "foo")
 
-    def test_call_startswith(self):
+    def test_call_startswith_single(self):
         output = self.extractor.getInterestingStrings('a.startswith("foo")')
         assert(len(output) == 1)
         assert(output[0][0] == "PREFIX")
         assert(output[0][1] == "foo")
 
-    def test_call_endswith(self):
+    def test_call_startswith_tuple(self):
+        output = self.extractor.getInterestingStrings('a.startswith( ("foo", "bar") )')
+        assert(len(output) == 2)
+        assert(output[0][0] == "PREFIX")
+        assert(output[1][0] == "PREFIX")
+        assert(sorted(list(map( lambda x : x[1], output ))) == ["bar", "foo"])
+
+    def test_call_endswith_single(self):
         output = self.extractor.getInterestingStrings('a.endswith("foo")')
         assert(len(output) == 1)
         assert(output[0][0] == "SUFFIX")
         assert(output[0][1] == "foo")
+
+    def test_call_endswith_tuple(self):
+        output = self.extractor.getInterestingStrings('a.endswith( ("foo", "bar") )')
+        assert(len(output) == 2)
+        assert(output[0][0] == "SUFFIX")
+        assert(output[1][0] == "SUFFIX")
+        assert(sorted(list(map( lambda x : x[1], output ))) == ["bar", "foo"])
 
     def test_call_index(self):
         output = self.extractor.getInterestingStrings('a.index("foo")')
