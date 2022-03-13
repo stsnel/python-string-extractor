@@ -8,7 +8,7 @@ Strings that are potentially relevant to the control flow can be used for
 text input generation in scriptless testing, or for automated test case
 generation.
 
-For example, in the code example below, string literals "foo" and "bar" are relevant to
+For example, in the code fragment below, string literals "foo" and "bar" are relevant to
 the control flow, since they are used in comparisons, so it might be useful to use
 these string literals in test cases, or in input generation for scriptless testing.
 
@@ -79,6 +79,14 @@ code flow from some of the lines:
 ```
 >>> from string_extractor import StringExtractor
 >>> e = StringExtractor()
+>>> e.get_batch ( [("hello.py", 5), ("hello.py", 7) , ("hello.py", 9)], True )
+[('FULL', 'english'), ('FULL', 'dutch'), ('FULL', 'german')]
+```
+
+Remove the last boolean argument to `get_batch` in order to group the strings by
+line of code:
+
+```
 >>> e.get_batch ( [("hello.py", 5), ("hello.py", 7) , ("hello.py", 9)] )
 [('hello.py', 5, [('FULL', 'english')]), ('hello.py', 7, [('FULL', 'dutch')]), ('hello.py', 9, [('FULL', 'german')])]
 ```
@@ -90,9 +98,10 @@ to add a trace function that logs the source file name and line
 number of every executed line of code.
 
 A modified version of the Coverage.py coverage measurement tool that also
-collects execution traces is available at [https://github.com/stsnel/coveragepy/tree/6.2-local/].
+collects execution traces is available at https://github.com/stsnel/coveragepy/tree/6.2-local/
 
-The example below shows how to use it in an existing script
+The example below shows how to use the modified version of Coverage.py and the string extractor
+in an existing script.
 
 ```
 #!/usr/bin/env python3
@@ -143,7 +152,7 @@ be related to a particular test case by setting the log context prior to
 executing the test case.
 
 An example of such instrumentation on a web application can be found at
-[https://github.com/stsnel/ckan/tree/2.9.3-testar].
+https://github.com/stsnel/ckan/tree/2.9.3-testar
 
 ## Cache settings
 
@@ -159,7 +168,7 @@ It's also possible to create a string extractor with no cache:
 
 The cache is non-persistent by default. It can be useful to persist the cache to file
 in order to cache extracted strings across multiple executions of a program. If a StringExtractor
-is created with a filename argument, the cache is loaded from file on creation of the StringExtrator.
+is created with a filename argument, the cache is loaded from file on creation of the StringExtractor.
 The cache must be saved using the save() function after the StringExtractor has processed all lines.
 For example:
 
